@@ -20,12 +20,23 @@ return {
     },
     -- tables with the `name` key will be registered with which-key if it's installed
     -- this is useful for naming menus
-    ["<leader>b"] = { name = "Buffers" }
+    ["<leader>b"] = { name = "Buffers" },
+    ["<A-j>"] = { "<cmd>m .+1<cr>==" },
+    ["<A-k>"] = { "<cmd>m .-2<cr>==" }
+
     -- quick save
     -- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
   },
   t = {
     -- setting a mapping to false will disable it
     -- ["<esc>"] = false,
+  },
+  v = {
+    ["<A-j>"] = { "<cmd>m '>+1<cr>gv=gv" },
+    ["<A-k>"] = { "<cmd>m '<-2<cr>gv=gv" },
+  },
+  i = {
+    ["<A-j>"] = { "<Esc>m .+1<cr>==gi" },
+    ["<A-k>"] = { "<Esc>m .-2<cr>==gi" }
   }
 }
