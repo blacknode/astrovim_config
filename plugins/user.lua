@@ -21,16 +21,16 @@ return {
                 untracked = {text = '┆'}
             },
             signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
-            numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
-            linehl = true, -- Toggle with `:Gitsigns toggle_linehl`
-            word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
+            numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
+            linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
+            word_diff = false, -- Toggle with `:Gitsigns toggle_word_diff`
             watch_gitdir = {follow_files = true},
             attach_to_untracked = true,
             current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
             current_line_blame_opts = {
                 virt_text = true,
                 virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
-                delay = 1000,
+                delay = 100,
                 ignore_whitespace = false
             },
             current_line_blame_formatter = 'Commit info: <author>, <author_time:%Y-%m-%d> - <summary>',
@@ -324,5 +324,25 @@ return {
             }
             require("telescope").load_extension "toggletasks"
         end
+    }, {
+        "goolord/alpha-nvim",
+        opts = function(_, opts)
+            opts.section.header.val = {
+                [[                                                                       ]],
+                [[                                                                     ]],
+                [[       ████ ██████           █████      ██                     ]],
+                [[      ███████████             █████                             ]],
+                [[      █████████ ███████████████████ ███   ███████████   ]],
+                [[     █████████  ███    █████████████ █████ ██████████████   ]],
+                [[    █████████ ██████████ █████████ █████ █████ ████ █████   ]],
+                [[  ███████████ ███    ███ █████████ █████ █████ ████ █████  ]],
+                [[ ██████  █████████████████████ ████ █████ █████ ████ ██████ ]],
+                [[                                                                       ]]
+            }
+            -- opts.section.footer.val = {
+            --
+            -- }
+        end
     }
+
 }
