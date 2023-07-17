@@ -10,6 +10,209 @@ return {
     --   end,
     -- },
     {
+        "lewis6991/gitsigns.nvim",
+        opts = {
+            signs = {
+                add = {text = '│'},
+                change = {text = '│'},
+                delete = {text = '_'},
+                topdelete = {text = '‾'},
+                changedelete = {text = '~'},
+                untracked = {text = '┆'}
+            },
+            signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
+            numhl = true, -- Toggle with `:Gitsigns toggle_numhl`
+            linehl = true, -- Toggle with `:Gitsigns toggle_linehl`
+            word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
+            watch_gitdir = {follow_files = true},
+            attach_to_untracked = true,
+            current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
+            current_line_blame_opts = {
+                virt_text = true,
+                virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
+                delay = 1000,
+                ignore_whitespace = false
+            },
+            current_line_blame_formatter = 'Commit info: <author>, <author_time:%Y-%m-%d> - <summary>',
+            sign_priority = 6,
+            update_debounce = 100,
+            status_formatter = nil, -- Use default
+            max_file_length = 40000, -- Disable if file is longer than this (in lines)
+            preview_config = {
+                -- Options passed to nvim_open_win
+                border = 'single',
+                style = 'minimal',
+                relative = 'cursor',
+                row = 0,
+                col = 1
+            },
+            yadm = {enable = false}
+        }
+    }, {
+        "nvim-neo-tree/neo-tree.nvim",
+        opts = {
+            auto_clean_after_session_restore = true,
+            close_if_last_window = true,
+            source_selector = {
+                winbar = true,
+                content_layout = "center",
+                sources = {
+                    {
+                        source = "filesystem",
+                        display_name = require("astronvim.utils").get_icon "FolderClosed" ..
+                            " File"
+                    }, {
+                        source = "buffers",
+                        display_name = require("astronvim.utils").get_icon "DefaultFile" ..
+                            " Bufs"
+                    }, {
+                        source = "git_status",
+                        display_name = require("astronvim.utils").get_icon "Git" ..
+                            " Git"
+                    }, {
+                        source = "diagnostics",
+                        display_name = require("astronvim.utils").get_icon "Diagnostic" ..
+                            " Diagnostic"
+                    }
+                }
+            },
+            default_component_configs = {
+                indent = {padding = 0, indent_size = 3},
+                icon = {
+                    folder_closed = require("astronvim.utils").get_icon "FolderClosed",
+                    folder_open = require("astronvim.utils").get_icon "FolderOpen",
+                    folder_empty = require("astronvim.utils").get_icon "FolderEmpty",
+                    default = require("astronvim.utils").get_icon "DefaultFile"
+                },
+                modified = {
+                    symbol = require("astronvim.utils").get_icon "FileModified"
+                },
+                git_status = {
+                    symbols = {
+                        added = require("astronvim.utils").get_icon "GitAdd",
+                        deleted = require("astronvim.utils").get_icon "GitDelete",
+                        modified = require("astronvim.utils").get_icon "GitChange",
+                        renamed = require("astronvim.utils").get_icon "GitRenamed",
+                        untracked = require("astronvim.utils").get_icon "GitUntracked",
+                        ignored = require("astronvim.utils").get_icon "GitIgnored",
+                        unstaged = require("astronvim.utils").get_icon "GitUnstaged",
+                        staged = require("astronvim.utils").get_icon "GitStaged",
+                        conflict = require("astronvim.utils").get_icon "GitConflict"
+                    }
+                }
+            },
+            commands = {
+                system_open = function(state)
+                    require("astronvim.utils").system_open(
+                        state.tree:get_node():get_id())
+                end,
+                parent_or_close = function(state)
+                    local node = state.tree:get_node()
+                    if (node.type == "directory" or node:has_children()) and
+                        node:is_expanded() then
+                        state.commands.toggle_node(state)
+                    else
+                        require("neo-tree.ui.renderer").focus_node(state,
+                                                                   node:get_parent_id())
+                    end
+                end,
+                child_or_open = function(state)
+                    local node = state.tree:get_node()
+                    if node.type == "directory" or node:has_children() then
+                        if not node:is_expanded() then -- if unexpanded, expand
+                            state.commands.toggle_node(state)
+                        else -- if expanded and has children, seleect the next child
+                            require("neo-tree.ui.renderer").focus_node(state,
+                                                                       node:get_child_ids()[1])
+                        end
+                    else -- if not a directory just open it
+                        state.commands.open(state)
+                    end
+                end,
+                copy_selector = function(state)
+                    local node = state.tree:get_node()
+                    local filepath = node:get_id()
+                    local filename = node.name
+                    local modify = vim.fn.fnamemodify
+
+                    local results = {
+                        e = {
+                            val = modify(filename, ":e"),
+                            msg = "Extension only"
+                        },
+                        f = {val = filename, msg = "Filename"},
+                        F = {
+                            val = modify(filename, ":r"),
+                            msg = "Filename w/o extension"
+                        },
+                        h = {
+                            val = modify(filepath, ":~"),
+                            msg = "Path relative to Home"
+                        },
+                        p = {
+                            val = modify(filepath, ":."),
+                            msg = "Path relative to CWD"
+                        },
+                        P = {val = filepath, msg = "Absolute path"}
+                    }
+
+                    local messages = {
+                        {"\nChoose to copy to clipboard:\n", "Normal"}
+                    }
+                    for i, result in pairs(results) do
+                        if result.val and result.val ~= "" then
+                            vim.list_extend(messages, {
+                                {("%s."):format(i), "Identifier"},
+                                {(" %s: "):format(result.msg)},
+                                {result.val, "String"}, {"\n"}
+                            })
+                        end
+                    end
+                    vim.api.nvim_echo(messages, false, {})
+                    local result = results[vim.fn.getcharstr()]
+                    if result and result.val and result.val ~= "" then
+                        vim.notify("Copied: " .. result.val)
+                        vim.fn.setreg("+", result.val)
+                    end
+                end
+            },
+            window = {
+                position = "right",
+                width = 60,
+                mappings = {
+                    ["<space>"] = false, -- disable space until we figure out which-key disabling
+                    ["[b"] = "prev_source",
+                    ["]b"] = "next_source",
+                    o = "open",
+                    O = "system_open",
+                    h = "parent_or_close",
+                    l = "child_or_open",
+                    Y = "copy_selector"
+                }
+            },
+            filesystem = {
+                follow_current_file = true,
+                filtered_items = {
+                    never_show = {".git", ".DS_Store"},
+                    visible = false,
+                    hide_dotfiles = false,
+                    always_show = {
+                        ".gitignore", ".env", ".env.*", ".toggletasks"
+                    }
+                },
+                hijack_netrw_behavior = "open_current",
+                use_libuv_file_watcher = true
+            },
+            event_handlers = {
+                {
+                    event = "neo_tree_buffer_enter",
+                    handler = function(_)
+                        vim.opt_local.signcolumn = "auto"
+                    end
+                }
+            }
+        }
+    }, {
         "folke/todo-comments.nvim",
         dependencies = {"nvim-lua/plenary.nvim"},
         -- config = function() require("todo-comments").setup {} end,
